@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 11 · More Multiplication & Division</title>
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --teal:   #00838F;
+    --teal-d: #005F6B;
+    --teal-l: #E0F4F6;
+    --red:    #D32F2F;
+    --green:  #2E7D32;
+    --green-l:#E8F5E9;
+    --amber:  #F57C00;
+    --purple: #6A1B9A;
+    --purple-l:#F3E5F5;
+    --gold:   #F9A825;
+    --slate:  #455A64;
+    --slate-l:#ECEFF1;
+    --white:  #FFFFFF;
+    --bg:     #F5F7FA;
+    --text:   #1A2533;
+    --nav-w:  220px;
+    --radius: 14px;
+    --shadow: 0 4px 20px rgba(0,0,0,.12);
+  }
+
+  /* ── RESET ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Trebuchet MS', 'Gill Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* ── LAYOUT ── */
+  #app { display: flex; height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--nav-w);
+    min-width: var(--nav-w);
+    background: var(--teal-d);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    z-index: 10;
+    box-shadow: 4px 0 16px rgba(0,0,0,.2);
+  }
+  #sidebar-header {
+    background: var(--teal);
+    padding: 20px 14px 16px;
+    color: white;
+  }
+  #sidebar-header .unit-badge {
+    background: var(--gold);
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  #sidebar-header h1 {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: white;
+  }
+  #sidebar-header p {
+    font-size: 11px;
+    color: rgba(255,255,255,.7);
+    margin-top: 4px;
+  }
+
+  #score-bar {
+    background: rgba(0,0,0,.25);
+    padding: 10px 14px;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #score-bar .score-val {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--gold);
+  }
+
+  nav { flex: 1; padding: 10px 0; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 14px;
+    cursor: pointer;
+    color: rgba(255,255,255,.75);
+    font-size: 13px;
+    font-weight: 600;
+    border-left: 4px solid transparent;
+    transition: all .2s;
+    min-height: 56px;
+    position: relative;
+  }
+  .nav-item:hover, .nav-item.active {
+    background: rgba(255,255,255,.12);
+    color: white;
+    border-left-color: var(--gold);
+  }
+  .nav-item .nav-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    background: rgba(255,255,255,.1);
+    flex-shrink: 0;
+  }
+  .nav-item.done .nav-icon::after {
+    content: '✓';
+    position: absolute;
+    right: 12px;
+    color: #A5D6A7;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  #global-restart {
+    margin: 12px;
+    padding: 11px;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 10px;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: background .2s;
+  }
+  #global-restart:hover { background: rgba(255,255,255,.2); }
+
+  /* ── MAIN ── */
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 28px 28px 60px;
+    scroll-behavior: smooth;
+  }
+
+  /* ── SECTION ── */
+  .section { display: none; animation: fadeIn .35s ease; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-d) 100%);
+    color: white;
+    padding: 24px 28px;
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    right: -30px; top: -30px;
+    width: 150px; height: 150px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.08);
+  }
+  .page-header .pg-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: .7;
+    margin-bottom: 6px;
+  }
+  .page-header h2 { font-size: 22px; font-weight: 800; }
+  .page-header p { font-size: 14px; margin-top: 6px; opacity: .85; line-height: 1.5; }
+
+  /* ── CARDS ── */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--teal-d);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .badge {
+    width: 26px; height: 26px;
+    background: var(--teal);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .18s;
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .btn-teal { background: var(--teal); color: white; }
+  .btn-teal:hover { background: var(--teal-d); transform: translateY(-1px); }
+  .btn-ghost { background: var(--slate-l); color: var(--slate); }
+  .btn-ghost:hover { background: #dde3e8; }
+  .btn-amber { background: var(--amber); color: white; }
+  .btn-purple { background: var(--purple); color: white; }
+  .btn-green { background: var(--green); color: white; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; min-height: 36px; }
+
+  /* ── STAR ARRAY ── */
+  #star-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+    max-width: 380px;
+    margin: 0 auto 20px;
+  }
+  .star { font-size: 26px; text-align: center; line-height: 1; transition: transform .2s; }
+  .star:hover { transform: scale(1.2); }
+
+  /* ── FACT FAMILY ── */
+  .fact-family-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .fact-slot {
+    border: 2.5px dashed #B0BEC5;
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--slate);
+    cursor: pointer;
+    transition: all .2s;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .fact-slot.filled { background: var(--teal-l); border-color: var(--teal); color: var(--teal-d); }
+  .fact-slot.correct { background: var(--green-l); border-color: var(--green); color: var(--green); border-style: solid; }
+  .fact-slot.incorrect { background: #FFEBEE; border-color: var(--red); color: var(--red); border-style: solid; }
+
+  .fact-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .fact-chip {
+    padding: 10px 16px;
+    background: var(--slate-l);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all .18s;
+    min-height: 44px;
+  }
+  .fact-chip:hover { background: var(--teal-l); border-color: var(--teal); }
+  .fact-chip.used { opacity: .35; pointer-events: none; }
+  .fact-chip.selected { background: var(--teal); color: white; }
+
+  /* ── QUICK FACTS ── */
+  .qf-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .qf-item {
+    background: var(--slate-l);
+    border-radius: 10px;
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .qf-label { font-size: 16px; font-weight: 800; color: var(--teal-d); }
+  .qf-input {
+    width: 70px;
+    height: 44px;
+    border: 2.5px solid #B0BEC5;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 800;
+    outline: none;
+    transition: border-color .2s;
+    background: white;
+    color: var(--text);
+  }
+  .qf-input:focus { border-color: var(--teal); }
+  .qf-item.correct .qf-input { border-color: var(--green); background: var(--green-l); color: var(--green); }
+  .qf-item.incorrect .qf-input { border-color: var(--red); background: #FFEBEE; color: var(--red); }
+  .qf-feedback { font-size: 12px; font-weight: 700; height: 16px; }
+  .correct-text { color: var(--green); }
+  .incorrect-text { color: var(--red); }
+
+  /* ── MULT SQUARE ── */
+  #mult-sq-wrap { overflow-x: auto; }
+  #mult-sq {
+    border-collapse: collapse;
+    margin: 0 auto;
+    font-size: 13px;
+  }
+  #mult-sq th, #mult-sq td {
+    width: 42px;
+    height: 42px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #CFD8DC;
+    font-weight: 700;
+    position: relative;
+  }
+  #mult-sq th {
+    background: var(--teal);
+    color: white;
+    font-size: 13px;
+  }
+  #mult-sq th:first-child {
+    background: var(--teal-d);
+    font-size: 16px;
+  }
+  #mult-sq td {
+    background: white;
+    color: var(--text);
+    cursor: default;
+  }
+  #mult-sq td.on-diagonal {
+    background: #FFF9C4;
+  }
+  #mult-sq td.blank {
+    background: #ECEFF1;
+    cursor: pointer;
+  }
+  #mult-sq td.blank:hover { background: var(--teal-l); }
+  #mult-sq td.correct { background: var(--green-l) !important; color: var(--green); }
+  #mult-sq td.incorrect-flash { background: #FFEBEE !important; color: var(--red); }
+  #mult-sq td.diagonal-hl { background: rgba(249,168,37,.35) !important; }
+
+  .sq-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 800;
+    outline: none;
+    color: var(--teal-d);
+    padding: 0;
+    cursor: pointer;
+  }
+
+  /* diagonal SVG line overlay */
+  #sq-container { position: relative; display: inline-block; }
+  #diag-line {
+    position: absolute;
+    top: 0; left: 0;
+    pointer-events: none;
+  }
+
+  /* ── FACT FAMILY BUILDER ── */
+  .ff-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .ff-number-card {
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 2px solid var(--teal-l);
+  }
+  .ff-number-card h3 {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--teal-d);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ff-number-card h3 .num-badge {
+    background: var(--teal);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 15px;
+  }
+
+  .ff-slots { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .ff-slot {
+    border: 2px dashed #B0BEC5;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #90A4AE;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .ff-slot.filled { background: var(--teal-l); border-color: var(--teal); color: var(--teal-d); border-style: solid; }
+  .ff-slot.correct { background: var(--green-l); border-color: var(--green); color: var(--green); border-style: solid; }
+  .ff-slot.wrong { background: #FFEBEE; border-color: var(--red); color: var(--red); border-style: solid; }
+
+  .ff-chip-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--slate-l);
+    border-radius: 10px;
+  }
+  .ff-chip {
+    padding: 9px 13px;
+    background: white;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid #CFD8DC;
+    transition: all .18s;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .ff-chip:hover { border-color: var(--teal); background: var(--teal-l); }
+  .ff-chip.used { opacity: .3; pointer-events: none; text-decoration: line-through; }
+  .ff-chip.selected { background: var(--teal); color: white; border-color: var(--teal-d); }
+
+  /* ── COMMUTATIVITY REVIEW ── */
+  .hint-box {
+    background: var(--purple-l);
+    border-left: 4px solid var(--purple);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 16px;
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--purple);
+    display: none;
+  }
+  .hint-box.visible { display: block; animation: fadeIn .3s ease; }
+
+  #comm-textarea {
+    width: 100%;
+    min-height: 100px;
+    border: 2.5px solid #B0BEC5;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color .2s;
+    color: var(--text);
+  }
+  #comm-textarea:focus { border-color: var(--teal); }
+
+  /* ── SCORE SUMMARY ── */
+  #summary-section {
+    text-align: center;
+  }
+  .score-ring {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: conic-gradient(var(--teal) var(--pct), var(--slate-l) 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    position: relative;
+  }
+  .score-ring::after {
+    content: attr(data-score);
+    position: absolute;
+    width: 88px;
+    height: 88px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--teal-d);
+  }
+  .score-ring-inner {
+    width: 88px;
+    height: 88px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--teal-d);
+    z-index: 1;
+  }
+
+  .achievement-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0;
+    text-align: left;
+  }
+  .ach-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--slate-l);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .ach-row .ach-icon { font-size: 20px; }
+  .ach-row.done { background: var(--green-l); color: var(--green); }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+    border-left: 4px solid #1565C0;
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #0D47A1;
+    margin-bottom: 16px;
+  }
+  .think-box {
+    background: linear-gradient(135deg, var(--purple-l), #CE93D8);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--purple);
+    margin-top: 14px;
+  }
+  .think-box strong { display: block; margin-bottom: 4px; }
+
+  /* ── FEEDBACK TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    z-index: 100;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .3s;
+    pointer-events: none;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { background: var(--green); }
+  #toast.error { background: var(--red); }
+  #toast.info { background: var(--teal); }
+
+  /* ── PROGRESS ROW ── */
+  .prog-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--slate);
+  }
+  .prog-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--slate-l);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 4px;
+    transition: width .4s ease;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    :root { --nav-w: 60px; }
+    #sidebar-header h1, #sidebar-header p,
+    #sidebar-header .unit-badge, #score-bar span:not(.score-val),
+    .nav-item span, #global-restart { display: none; }
+    .nav-item { justify-content: center; padding: 14px 10px; }
+    .nav-item .nav-icon { margin: 0; }
+    #main { padding: 16px 14px 60px; }
+    .qf-grid { grid-template-columns: repeat(3, 1fr); }
+    .ff-container { grid-template-columns: 1fr; }
+    .fact-family-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 420px) {
+    #mult-sq th, #mult-sq td { width: 32px; height: 32px; font-size: 11px; }
+    .qf-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ══ SIDEBAR ══ -->
+  <aside id="sidebar">
+    <div id="sidebar-header">
+      <div class="unit-badge">Unit 11.1</div>
+      <h1>More Multiplication &amp; Division</h1>
+      <p>Cambridge Primary Maths</p>
+    </div>
+    <div id="score-bar">
+      <span class="score-val" id="sb-score">0</span>
+      <span> pts earned</span>
+    </div>
+    <nav id="nav">
+      <div class="nav-item active" data-sec="intro" onclick="LS.go('intro')">
+        <div class="nav-icon">📖</div><span>Introduction</span>
+      </div>
+      <div class="nav-item" data-sec="act1" onclick="LS.go('act1')">
+        <div class="nav-icon">⭐</div><span>1 · Star Array</span>
+      </div>
+      <div class="nav-item" data-sec="act2" onclick="LS.go('act2')">
+        <div class="nav-icon">⚡</div><span>2 · Quick Facts</span>
+      </div>
+      <div class="nav-item" data-sec="act3" onclick="LS.go('act3')">
+        <div class="nav-icon">🔢</div><span>3 · Mult Square</span>
+      </div>
+      <div class="nav-item" data-sec="act4" onclick="LS.go('act4')">
+        <div class="nav-icon">🧩</div><span>4 · Fact Families</span>
+      </div>
+      <div class="nav-item" data-sec="review" onclick="LS.go('review')">
+        <div class="nav-icon">💬</div><span>5 · Final Review</span>
+      </div>
+      <div class="nav-item" data-sec="summary" onclick="LS.go('summary')">
+        <div class="nav-icon">🏆</div><span>My Score</span>
+      </div>
+    </nav>
+    <button id="global-restart" onclick="LS.globalRestart()">🔄 Global Restart</button>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main id="main">
+
+    <!-- ── INTRO ── -->
+    <section id="intro" class="section active">
+      <div class="page-header">
+        <div class="pg-label">Unit 11 · Pages 168–171</div>
+        <h2>More Multiplication &amp; Division</h2>
+        <p>Explore the multiplication square, fact families, and discover the magic of commutative properties!</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="badge">→</div> What you will learn</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="info-box">📐 <strong>Make a multiplication square</strong> – Fill in a 10×10 grid and spot patterns along the diagonal.</div>
+          <div class="info-box">🔍 <strong>Read multiplication and division facts</strong> – Use rows &amp; columns to find fact families.</div>
+          <div class="info-box">✨ <strong>Make sequences of numbers</strong> – Follow patterns across the square.</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="background:var(--teal-l);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--teal-d);">commutative</div>
+          <div style="background:var(--teal-l);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--teal-d);">diagonal line</div>
+          <div style="background:var(--teal-l);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--teal-d);">product</div>
+          <div style="background:var(--teal-l);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--teal-d);">fact family</div>
+        </div>
+      </div>
+      <div class="card" style="background:linear-gradient(135deg,#FFF8E1,#FFFDE7);border:2px solid var(--gold);">
+        <div class="card-title">💡 Getting Started Question</div>
+        <p style="font-size:14px;line-height:1.7;margin-bottom:12px;">If you cannot remember the multiplication table for <strong>8</strong>, which other tables could you use to help?</p>
+        <p style="font-size:13px;color:var(--slate);line-height:1.6;">Hint: Because multiplication is <em>commutative</em>, 8×4 = 4×8. So if you know the 4× table, you already know 8×4!</p>
+      </div>
+      <div style="text-align:center;margin-top:10px;">
+        <button class="btn btn-teal" onclick="LS.go('act1')" style="font-size:16px;padding:14px 32px;">
+          Start Activity 1 ⭐
+        </button>
+      </div>
+    </section>
+
+    <!-- ── ACT 1 ── -->
+    <section id="act1" class="section">
+      <div class="page-header">
+        <div class="pg-label">Activity 1 · Page 168</div>
+        <h2>The Star Array &amp; Fact Family</h2>
+        <p>Look at the array below. Can you build all 4 facts from the same family?</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="badge">1</div> The Array (4 rows of 8 stars)</div>
+        <div id="star-grid"></div>
+        <div style="text-align:center;color:var(--slate);font-size:13px;">
+          4 rows × 8 stars = <strong>32 stars</strong> in total
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="badge">2</div> Build the Fact Family</div>
+        <p style="font-size:13px;color:var(--slate);margin-bottom:12px;">Tap a fact card below, then tap an empty slot to place it. Fill all 4 slots!</p>
+
+        <div class="fact-family-grid" id="ff-slots">
+          <div class="fact-slot" id="fslot-0" onclick="LS.placeFactSlot(0)">_ × _ = _</div>
+          <div class="fact-slot" id="fslot-1" onclick="LS.placeFactSlot(1)">_ × _ = _</div>
+          <div class="fact-slot" id="fslot-2" onclick="LS.placeFactSlot(2)">_ ÷ _ = _</div>
+          <div class="fact-slot" id="fslot-3" onclick="LS.placeFactSlot(3)">_ ÷ _ = _</div>
+        </div>
+
+        <div class="fact-options" id="ff-chips"></div>
+
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+          <button class="btn btn-teal" onclick="LS.checkFact1()">✅ Check</button>
+          <button class="btn btn-ghost" onclick="LS.resetAct1()">🔄 Reset</button>
+        </div>
+
+        <div id="fact1-result" style="display:none;margin-top:12px;padding:12px;border-radius:10px;font-size:14px;font-weight:700;"></div>
+      </div>
+
+      <div class="think-box">
+        <strong>🤔 Think like a mathematician</strong>
+        Why does the array show that 4×8 is the <em>same</em> as 8×4? Draw or imagine rotating the array!
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-teal" onclick="LS.go('act2')">Next: Quick Facts ⚡ →</button>
+      </div>
+    </section>
+
+    <!-- ── ACT 2 ── -->
+    <section id="act2" class="section">
+      <div class="page-header">
+        <div class="pg-label">Activity 2 · Page 168</div>
+        <h2>⚡ Quick Fact Check</h2>
+        <p>Type your answer and press Enter or Tab. Get instant feedback!</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="badge">3</div> Complete each number fact</div>
+        <div class="prog-row">
+          <span id="qf-prog-txt">0/9 correct</span>
+          <div class="prog-bar"><div class="prog-fill" id="qf-prog-bar" style="width:0%"></div></div>
+        </div>
+        <div class="qf-grid" id="qf-grid"></div>
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+          <button class="btn btn-teal" onclick="LS.checkAct2()">✅ Check All</button>
+          <button class="btn btn-ghost" onclick="LS.resetAct2()">🔄 Reset</button>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-teal" onclick="LS.go('act3')">Next: Mult Square 🔢 →</button>
+      </div>
+    </section>
+
+    <!-- ── ACT 3 ── -->
+    <section id="act3" class="section">
+      <div class="page-header">
+        <div class="pg-label">Activity 3 · Page 170</div>
+        <h2>🔢 The Multiplication Square</h2>
+        <p>Fill in the missing products. Tap a blank cell and type the answer!</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="badge">1</div> Complete the multiplication square</div>
+        <div class="info-box">📌 The diagonal line goes from the × symbol (top-left) to 10×10=100 (bottom-right). The numbers ON the diagonal are special — can you see why?</div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+          <button class="btn btn-amber btn-sm" onclick="LS.toggleDiagonal()" id="diag-btn">🔆 Highlight Diagonal</button>
+          <button class="btn btn-purple btn-sm" onclick="LS.checkAct3()">✅ Check Blanks</button>
+          <button class="btn btn-ghost btn-sm" onclick="LS.resetAct3()">🔄 Reset</button>
+        </div>
+
+        <div id="sq-container">
+          <div id="mult-sq-wrap">
+            <table id="mult-sq"></table>
+          </div>
+        </div>
+
+        <div id="sq-result" style="display:none;margin-top:12px;padding:12px;border-radius:10px;font-size:13px;font-weight:700;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="badge">2</div> Investigation: The Diagonal</div>
+        <p style="font-size:13px;line-height:1.6;color:var(--slate);margin-bottom:10px;">
+          When you draw a diagonal line from top-left to bottom-right, what can you say about the products on the line?
+        </p>
+        <div id="diag-explanation" style="display:none;" class="think-box">
+          <strong>💡 Square Numbers!</strong>
+          The diagonal passes through: 1, 4, 9, 16, 25, 36, 49, 64, 81, 100.<br>
+          These are the <strong>square numbers</strong>! Each one is a number multiplied by itself (e.g. 3×3=9).<br>
+          Also notice that the grid is <strong>symmetrical</strong> about the diagonal — 3×7 = 7×3. This is the <strong>commutative property</strong>!
+        </div>
+        <button class="btn btn-purple btn-sm" style="margin-top:10px;" onclick="LS.showDiagExplanation()">🔍 Show Explanation</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="badge">3</div> Division Facts from the Square</div>
+        <p style="font-size:13px;line-height:1.6;color:var(--slate);">
+          Pick any product in the grid. Read across its row and up its column to find the two factors. Then write division facts!<br><br>
+          <strong>Example:</strong> Product 24 → row 3, column 8 → so: <code>24 ÷ 3 = 8</code> and <code>24 ÷ 8 = 3</code>
+        </p>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-teal" onclick="LS.go('act4')">Next: Fact Families 🧩 →</button>
+      </div>
+    </section>
+
+    <!-- ── ACT 4 ── -->
+    <section id="act4" class="section">
+      <div class="page-header">
+        <div class="pg-label">Activity 4 · Page 171</div>
+        <h2>🧩 Fact Families for 28 &amp; 72</h2>
+        <p>Tap a fact card to select it, then tap a slot to place it. Build all 4 facts for each number!</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="badge">4</div> Build the fact families</div>
+        <p style="font-size:13px;color:var(--slate);margin-bottom:14px;">Use the multiplication square from Activity 3 as your reference grid.</p>
+
+        <div class="ff-container" id="ff-container"></div>
+
+        <div class="ff-chip-pool" id="ff-chip-pool">
+          <div style="width:100%;font-size:12px;font-weight:700;color:var(--slate);margin-bottom:4px;">📦 Fact Cards — tap to select, then tap a slot:</div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+          <button class="btn btn-teal" onclick="LS.checkAct4()">✅ Check</button>
+          <button class="btn btn-ghost" onclick="LS.resetAct4()">🔄 Reset</button>
+        </div>
+        <div id="act4-result" style="display:none;margin-top:12px;padding:12px;border-radius:10px;font-size:14px;font-weight:700;"></div>
+      </div>
+
+      <div class="think-box">
+        <strong>💬 Think like a mathematician</strong>
+        Which numbers are shown on the multiplication square ONLY ONCE? <em>Hint: think about the diagonal!</em>
+        <br><br>The square numbers (1,4,9,16,25,36,49,64,81,100) appear only once — they sit on the diagonal (e.g. 7×7=49 can't be made any other way with the same two different numbers).
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-teal" onclick="LS.go('review')">Next: Final Review 💬 →</button>
+      </div>
+    </section>
+
+    <!-- ── REVIEW ── -->
+    <section id="review" class="section">
+      <div class="page-header">
+        <div class="pg-label">Activity 5 · Final Review</div>
+        <h2>💬 Think &amp; Reflect</h2>
+        <p>Answer in your own words — there's no single right answer!</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="badge">?</div> Why is multiplication commutative but division is not?</div>
+        <p style="font-size:13px;color:var(--slate);margin-bottom:12px;">Write your explanation below. Try to use examples like <strong>4×8 = 8×4</strong> and <strong>32÷8 ≠ 8÷32</strong>.</p>
+
+        <textarea id="comm-textarea" placeholder="Type your explanation here..."></textarea>
+
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn btn-purple btn-sm" onclick="LS.showHint()">💡 Show Hint</button>
+          <button class="btn btn-teal btn-sm" onclick="LS.submitReview()">✅ Submit Answer</button>
+        </div>
+
+        <div id="comm-hint" class="hint-box">
+          <strong>Hint:</strong> Multiplication is commutative because the <em>order of factors does not change the product</em>: 4×8 = 8×4 = 32. You can think of the array being rotated.<br><br>
+          Division is NOT commutative because the order matters: 32÷8 = 4, but 8÷32 = 0.25 — completely different! The ÷ symbol means "share into groups," so the number being shared must come first.
+        </div>
+
+        <div id="review-result" style="display:none;margin-top:12px;"></div>
+      </div>
+
+      <div class="card" style="background:linear-gradient(135deg,#E8F5E9,#C8E6C9);">
+        <div class="card-title">📝 Summary of Key Ideas</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.6;">
+          <div>✅ A multiplication square shows all products from 1×1 to 10×10.</div>
+          <div>✅ The diagonal contains <strong>square numbers</strong>: 1, 4, 9, 16 … 100.</div>
+          <div>✅ The square is <strong>symmetrical</strong> — mirror facts about the diagonal.</div>
+          <div>✅ Each product gives 4 facts (a <strong>fact family</strong>): 2 multiplication + 2 division.</div>
+          <div>✅ Multiplication is <strong>commutative</strong>; division is <strong>not</strong>.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-green" onclick="LS.go('summary')" style="font-size:16px;padding:14px 28px;">🏆 See My Score →</button>
+      </div>
+    </section>
+
+    <!-- ── SUMMARY ── -->
+    <section id="summary" class="section" id="summary-section">
+      <div class="page-header">
+        <div class="pg-label">Final Score</div>
+        <h2>🏆 Well Done!</h2>
+        <p>Here's how you did across all activities.</p>
+      </div>
+
+      <div class="card" style="text-align:center;">
+        <div style="font-size:14px;color:var(--slate);margin-bottom:10px;">Total Score</div>
+        <div class="score-ring" id="score-ring">
+          <div class="score-ring-inner" id="score-inner">0</div>
+        </div>
+        <div id="score-msg" style="font-size:14px;margin-top:10px;color:var(--slate);"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Activity Breakdown</div>
+        <div class="achievement-list" id="ach-list"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px;">
+        <button class="btn btn-ghost" onclick="LS.go('act1')">↩ Review Activities</button>
+        <button class="btn btn-teal" onclick="LS.globalRestart()">🔄 Restart All</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ══ STATE ══ */
+  const lessonState = {
+    current: 'intro',
+    score: 0,
+    done: {},
+    // Act 1
+    act1: {
+      selectedChip: null,
+      slotData: [null, null, null, null],
+      checked: false
+    },
+    // Act 2
+    act2: {
+      checked: false,
+      correct: 0
+    },
+    // Act 3
+    act3: {
+      blanks: {},     // key: "r-c", value: correct answer
+      diagOn: false,
+      diagExpShown: false,
+      checked: false
+    },
+    // Act 4
+    act4: {
+      selectedChip: null,
+      slots: {},
+      checked: false
+    },
+    // Review
+    review: {
+      submitted: false
+    }
+  };
+
+  /* ══ CONSTANTS ══ */
+  const FACTS = ['4 × 8 = 32', '8 × 4 = 32', '32 ÷ 8 = 4', '32 ÷ 4 = 8'];
+  const DECOY_FACTS = ['4 × 8 = 28', '32 ÷ 4 = 9', '8 + 4 = 12', '32 × 4 = 128'];
+
+  const QF_ITEMS = [
+    { label: '8 × 3 = ?',  ans: 24 },
+    { label: '36 ÷ 9 = ?', ans: 4  },
+    { label: '6 × 7 = ?',  ans: 42 },
+    { label: '5 × 10 = ?', ans: 50 },
+    { label: '60 ÷ 6 = ?', ans: 10 },
+    { label: '13 × 10 = ?',ans: 130},
+    { label: '9 × 8 = ?',  ans: 72 },
+    { label: '8 ÷ 4 = ?',  ans: 2  },
+    { label: '0 × 5 = ?',  ans: 0  }
+  ];
+
+  // Fact families for 28 and 72
+  const FF_FAMILIES = {
+    28: ['4 × 7 = 28', '7 × 4 = 28', '28 ÷ 4 = 7', '28 ÷ 7 = 4'],
+    72: ['8 × 9 = 72', '9 × 8 = 72', '72 ÷ 8 = 9', '72 ÷ 9 = 8']
+  };
+
+  /* ══ HELPERS ══ */
+  function toast(msg, type='info', dur=2200) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show ' + type;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.className = ''; }, dur);
+  }
+
+  function scoreUp(pts) {
+    lessonState.score += pts;
+    document.getElementById('sb-score').textContent = lessonState.score;
+  }
+
+  function markDone(sec) {
+    lessonState.done[sec] = true;
+    const el = document.querySelector(`.nav-item[data-sec="${sec}"]`);
+    if (el) el.classList.add('done');
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length-1; i>0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  /* ══ NAVIGATION ══ */
+  const LS = window.LS = {};
+
+  LS.go = function(sec) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const el = document.getElementById(sec);
+    if (el) el.classList.add('active');
+    const ni = document.querySelector(`.nav-item[data-sec="${sec}"]`);
+    if (ni) ni.classList.add('active');
+    lessonState.current = sec;
+    document.getElementById('main').scrollTop = 0;
+
+    if (sec === 'summary') renderSummary();
+  };
+
+  /* ══ ACT 1 SETUP ══ */
+  function setupAct1() {
+    // Star grid
+    const sg = document.getElementById('star-grid');
+    sg.innerHTML = '';
+    for (let r=0; r<4; r++)
+      for (let c=0; c<8; c++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.textContent = '⭐';
+        sg.appendChild(s);
+      }
+
+    // Chips
+    const allFacts = shuffle([...FACTS, ...DECOY_FACTS]);
+    const pool = document.getElementById('ff-chips');
+    pool.innerHTML = '';
+    allFacts.forEach((f, i) => {
+      const ch = document.createElement('div');
+      ch.className = 'fact-chip';
+      ch.textContent = f;
+      ch.dataset.fact = f;
+      ch.dataset.idx = i;
+      ch.onclick = () => LS.selectFactChip(ch);
+      pool.appendChild(ch);
+    });
+
+    // Reset slots
+    lessonState.act1.selectedChip = null;
+    lessonState.act1.slotData = [null, null, null, null];
+    lessonState.act1.checked = false;
+    for (let i=0; i<4; i++) {
+      const sl = document.getElementById('fslot-'+i);
+      sl.textContent = ['_ × _ = _','_ × _ = _','_ ÷ _ = _','_ ÷ _ = _'][i];
+      sl.className = 'fact-slot';
+    }
+    document.getElementById('fact1-result').style.display = 'none';
+  }
+
+  LS.selectFactChip = function(chip) {
+    if (chip.classList.contains('used')) return;
+    document.querySelectorAll('.fact-chip').forEach(c => c.classList.remove('selected'));
+    lessonState.act1.selectedChip = chip.dataset.fact;
+    chip.classList.add('selected');
+  };
+
+  LS.placeFactSlot = function(idx) {
+    if (lessonState.act1.checked) return;
+    const sel = lessonState.act1.selectedChip;
+    if (!sel) { toast('Tap a fact card first!', 'info'); return; }
+
+    // Remove from previous slot if placed there
+    lessonState.act1.slotData.forEach((d, i) => {
+      if (d === sel && i !== idx) {
+        lessonState.act1.slotData[i] = null;
+        const prev = document.getElementById('fslot-'+i);
+        prev.textContent = ['_ × _ = _','_ × _ = _','_ ÷ _ = _','_ ÷ _ = _'][i];
+        prev.className = 'fact-slot';
+      }
+    });
+
+    // If slot already has something, free the chip
+    const old = lessonState.act1.slotData[idx];
+    if (old) {
+      document.querySelectorAll('.fact-chip').forEach(c => {
+        if (c.dataset.fact === old) c.classList.remove('used');
+      });
+    }
+
+    lessonState.act1.slotData[idx] = sel;
+    const sl = document.getElementById('fslot-'+idx);
+    sl.textContent = sel;
+    sl.classList.add('filled');
+
+    // Mark chip used
+    document.querySelectorAll('.fact-chip').forEach(c => {
+      if (c.dataset.fact === sel) { c.classList.add('used'); c.classList.remove('selected'); }
+    });
+    lessonState.act1.selectedChip = null;
+  };
+
+  LS.checkFact1 = function() {
+    if (lessonState.act1.checked) return;
+    const data = lessonState.act1.slotData;
+    if (data.some(d => !d)) { toast('Fill all 4 slots first!', 'error'); return; }
+
+    let correct = 0;
+    // Check each slot: slots 0,1 should be multiplication facts, 2,3 division
+    const multFacts = FACTS.filter(f => f.includes('×'));
+    const divFacts  = FACTS.filter(f => f.includes('÷'));
+
+    [0,1].forEach(i => {
+      const sl = document.getElementById('fslot-'+i);
+      if (multFacts.includes(data[i])) { sl.className='fact-slot correct'; correct++; }
+      else sl.className='fact-slot incorrect';
+    });
+    [2,3].forEach(i => {
+      const sl = document.getElementById('fslot-'+i);
+      if (divFacts.includes(data[i])) { sl.className='fact-slot correct'; correct++; }
+      else sl.className='fact-slot incorrect';
+    });
+
+    const res = document.getElementById('fact1-result');
+    res.style.display = 'block';
+    if (correct === 4) {
+      res.style.background = 'var(--green-l)';
+      res.style.color = 'var(--green)';
+      res.textContent = '🎉 Perfect! All 4 facts in the family are correct!';
+      if (!lessonState.done['act1']) { scoreUp(20); markDone('act1'); }
+      toast('Excellent! Full fact family! +20pts', 'success');
+    } else {
+      res.style.background = '#FFEBEE';
+      res.style.color = 'var(--red)';
+      res.textContent = `${correct}/4 correct. Check the red slots and try again!`;
+      toast(`${correct}/4 correct. Try again!`, 'error');
+    }
+    lessonState.act1.checked = true;
+  };
+
+  LS.resetAct1 = function() {
+    lessonState.act1.checked = false;
+    setupAct1();
+  };
+
+  /* ══ ACT 2 SETUP ══ */
+  function setupAct2() {
+    const grid = document.getElementById('qf-grid');
+    grid.innerHTML = '';
+    lessonState.act2.correct = 0;
+    lessonState.act2.checked = false;
+
+    QF_ITEMS.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'qf-item';
+      div.id = 'qf-item-'+i;
+      div.innerHTML = `
+        <div class="qf-label">${item.label.replace(' = ?','')}<span style="color:var(--teal)"> = </span></div>
+        <input class="qf-input" id="qf-inp-${i}" type="number" min="0" max="999" inputmode="numeric" placeholder="?">
+        <div class="qf-feedback" id="qf-fb-${i}"></div>`;
+      grid.appendChild(div);
+
+      const inp = div.querySelector('input');
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          e.preventDefault();
+          checkSingleQF(i, item.ans);
+          // Move to next
+          if (i < QF_ITEMS.length-1)
+            document.getElementById('qf-inp-'+(i+1)).focus();
+          else
+            document.getElementById('qf-inp-0').focus();
+        }
+      });
+    });
+    updateQFProgress();
+  }
+
+  function checkSingleQF(idx, ans) {
+    const inp = document.getElementById('qf-inp-'+idx);
+    const item = document.getElementById('qf-item-'+idx);
+    const fb   = document.getElementById('qf-fb-'+idx);
+    const val  = parseInt(inp.value, 10);
+    if (isNaN(val)) return;
+    item.classList.remove('correct','incorrect');
+    if (val === ans) {
+      item.classList.add('correct');
+      fb.textContent = '✓';
+      fb.className = 'qf-feedback correct-text';
+    } else {
+      item.classList.add('incorrect');
+      fb.textContent = `✗ (${ans})`;
+      fb.className = 'qf-feedback incorrect-text';
+    }
+    updateQFProgress();
+  }
+
+  function updateQFProgress() {
+    const corr = document.querySelectorAll('.qf-item.correct').length;
+    document.getElementById('qf-prog-txt').textContent = `${corr}/9 correct`;
+    document.getElementById('qf-prog-bar').style.width = (corr/9*100)+'%';
+  }
+
+  LS.checkAct2 = function() {
+    let corr = 0;
+    QF_ITEMS.forEach((item, i) => {
+      checkSingleQF(i, item.ans);
+      const inp = document.getElementById('qf-inp-'+i);
+      if (parseInt(inp.value,10) === item.ans) corr++;
+    });
+    updateQFProgress();
+    lessonState.act2.correct = corr;
+    if (!lessonState.done['act2'] && corr >= 7) {
+      scoreUp(15 + (corr === 9 ? 5 : 0));
+      markDone('act2');
+      toast(`${corr}/9 correct! +${corr===9?20:15}pts`, 'success');
+    } else if (!lessonState.done['act2']) {
+      toast(`${corr}/9 — keep practising!`, corr>=5?'info':'error');
+    }
+  };
+
+  LS.resetAct2 = function() { setupAct2(); };
+
+  /* ══ ACT 3 SETUP ══ */
+  function setupAct3() {
+    const tbl = document.getElementById('mult-sq');
+    tbl.innerHTML = '';
+    lessonState.act3.blanks = {};
+    lessonState.act3.diagOn = false;
+    lessonState.act3.checked = false;
+    document.getElementById('diag-btn').textContent = '🔆 Highlight Diagonal';
+    document.getElementById('sq-result').style.display = 'none';
+    document.getElementById('diag-explanation').style.display = 'none';
+
+    // Choose blanks: 6 random off-diagonal + 4 diagonal
+    const diagCells   = [1,2,3,4,5,6,7,8,9,10].map(n => ({r:n,c:n}));
+    const offDiagPool = [];
+    for (let r=1; r<=10; r++)
+      for (let c=1; c<=10; c++)
+        if (r!==c) offDiagPool.push({r,c});
+
+    const shuffledOff = shuffle(offDiagPool).slice(0,6);
+    const shuffledDiag = shuffle(diagCells).slice(0,4);
+    const allBlanks = [...shuffledOff, ...shuffledDiag];
+    allBlanks.forEach(({r,c}) => { lessonState.act3.blanks[`${r}-${c}`] = r*c; });
+
+    // Header row
+    const hRow = document.createElement('tr');
+    const thX  = document.createElement('th');
+    thX.textContent = '×';
+    hRow.appendChild(thX);
+    for (let c=1; c<=10; c++) {
+      const th = document.createElement('th');
+      th.textContent = c;
+      hRow.appendChild(th);
+    }
+    tbl.appendChild(hRow);
+
+    // Data rows
+    for (let r=1; r<=10; r++) {
+      const tr = document.createElement('tr');
+      const rh = document.createElement('th');
+      rh.textContent = r;
+      tr.appendChild(rh);
+
+      for (let c=1; c<=10; c++) {
+        const td  = document.createElement('td');
+        const key = `${r}-${c}`;
+        const isDiag = r===c;
+        if (isDiag) td.classList.add('on-diagonal');
+
+        if (lessonState.act3.blanks[key] !== undefined) {
+          td.classList.add('blank');
+          td.dataset.r = r; td.dataset.c = c;
+          const inp = document.createElement('input');
+          inp.className = 'sq-input';
+          inp.type = 'number';
+          inp.inputMode = 'numeric';
+          inp.placeholder = '?';
+          inp.min = 1; inp.max = 100;
+          inp.addEventListener('change', () => checkSingleSqCell(td, r, c, parseInt(inp.value,10)));
+          inp.addEventListener('keydown', e => { if(e.key==='Enter') checkSingleSqCell(td, r, c, parseInt(inp.value,10)); });
+          td.appendChild(inp);
+        } else {
+          td.textContent = r*c;
+        }
+        tr.appendChild(td);
+      }
+      tbl.appendChild(tr);
+    }
+  }
+
+  function checkSingleSqCell(td, r, c, val) {
+    const correct = r*c;
+    td.classList.remove('correct','incorrect-flash');
+    if (val === correct) {
+      td.classList.add('correct');
+      td.querySelector('input').disabled = true;
+      td.classList.remove('blank');
+    } else if (!isNaN(val)) {
+      td.classList.add('incorrect-flash');
+      setTimeout(() => td.classList.remove('incorrect-flash'), 800);
+    }
+    updateSqProgress();
+  }
+
+  function updateSqProgress() {
+    const total  = Object.keys(lessonState.act3.blanks).length;
+    const done   = document.querySelectorAll('#mult-sq td.correct').length;
+    return { total, done };
+  }
+
+  LS.checkAct3 = function() {
+    let corr = 0, total = 0;
+    document.querySelectorAll('#mult-sq td.blank').forEach(td => {
+      const inp = td.querySelector('input');
+      if (!inp) return;
+      total++;
+      const r = parseInt(td.dataset.r), c = parseInt(td.dataset.c);
+      const val = parseInt(inp.value,10);
+      if (val === r*c) { td.classList.add('correct'); td.classList.remove('blank'); inp.disabled=true; corr++; }
+      else { td.classList.add('incorrect-flash'); setTimeout(()=>td.classList.remove('incorrect-flash'),800); }
+    });
+    // Add already correct ones
+    const alreadyCorr = document.querySelectorAll('#mult-sq td.correct').length;
+    const grandTotal  = Object.keys(lessonState.act3.blanks).length;
+    const res = document.getElementById('sq-result');
+    res.style.display = 'block';
+    if (alreadyCorr === grandTotal) {
+      res.style.background = 'var(--green-l)'; res.style.color = 'var(--green)';
+      res.textContent = `🎉 All ${grandTotal} blanks correct!`;
+      if (!lessonState.done['act3']) { scoreUp(20); markDone('act3'); toast('Multiplication square complete! +20pts','success'); }
+    } else {
+      res.style.background = '#FFF9C4'; res.style.color = '#F57F17';
+      res.textContent = `${alreadyCorr}/${grandTotal} blanks filled correctly. Keep going!`;
+    }
+  };
+
+  LS.toggleDiagonal = function() {
+    lessonState.act3.diagOn = !lessonState.act3.diagOn;
+    document.querySelectorAll('#mult-sq td').forEach(td => {
+      td.classList.remove('diagonal-hl');
+    });
+    if (lessonState.act3.diagOn) {
+      for (let n=1; n<=10; n++) {
+        const cells = document.querySelectorAll(`#mult-sq td[data-r="${n}"]`);
+        // Find col index n: each row has 10 tds, col index = c-1
+        const allTds = document.querySelectorAll(`#mult-sq tr:nth-child(${n+1}) td`);
+        if (allTds[n-1]) allTds[n-1].classList.add('diagonal-hl');
+        // For non-blank diagonal cells
+        const row = document.querySelector(`#mult-sq tr:nth-child(${n+1})`);
+        if (row) {
+          const tds = row.querySelectorAll('td');
+          if (tds[n-1]) tds[n-1].classList.add('diagonal-hl');
+        }
+      }
+      document.getElementById('diag-btn').textContent = '🔆 Hide Diagonal';
+    } else {
+      document.getElementById('diag-btn').textContent = '🔆 Highlight Diagonal';
+    }
+  };
+
+  LS.showDiagExplanation = function() {
+    const el = document.getElementById('diag-explanation');
+    el.style.display = 'block';
+    lessonState.act3.diagExpShown = true;
+  };
+
+  LS.resetAct3 = function() { setupAct3(); };
+
+  /* ══ ACT 4 SETUP ══ */
+  function setupAct4() {
+    const con = document.getElementById('ff-container');
+    con.innerHTML = '';
+    lessonState.act4.selectedChip = null;
+    lessonState.act4.slots = {};
+    lessonState.act4.checked = false;
+    document.getElementById('act4-result').style.display = 'none';
+
+    [28, 72].forEach(num => {
+      const card = document.createElement('div');
+      card.className = 'ff-number-card';
+      card.innerHTML = `<h3>Fact Family for <span class="num-badge">${num}</span></h3>
+        <div class="ff-slots" id="ff-slots-${num}">
+          ${[0,1,2,3].map(i => `<div class="ff-slot" id="ff-slot-${num}-${i}" onclick="LS.placeFF(${num},${i})">Tap a card then tap here</div>`).join('')}
+        </div>`;
+      con.appendChild(card);
+      lessonState.act4.slots[num] = [null,null,null,null];
+    });
+
+    // Build chip pool
+    const allFacts = shuffle([
+      ...FF_FAMILIES[28],
+      ...FF_FAMILIES[72],
+      // Decoys
+      '4 × 8 = 32', '32 ÷ 4 = 8', '7 × 9 = 63', '28 ÷ 7 = 5'
+    ]);
+    const pool = document.getElementById('ff-chip-pool');
+    // Keep label div
+    const label = pool.querySelector('div');
+    pool.innerHTML = '';
+    pool.appendChild(label);
+    allFacts.forEach(f => {
+      const ch = document.createElement('div');
+      ch.className = 'ff-chip';
+      ch.textContent = f;
+      ch.dataset.fact = f;
+      ch.onclick = () => LS.selectFF(ch);
+      pool.appendChild(ch);
+    });
+  }
+
+  LS.selectFF = function(chip) {
+    if (chip.classList.contains('used')) return;
+    document.querySelectorAll('.ff-chip').forEach(c => c.classList.remove('selected'));
+    lessonState.act4.selectedChip = chip.dataset.fact;
+    chip.classList.add('selected');
+  };
+
+  LS.placeFF = function(num, idx) {
+    if (lessonState.act4.checked) return;
+    const sel = lessonState.act4.selectedChip;
+    if (!sel) { toast('Tap a fact card first!', 'info'); return; }
+
+    // Remove from other slots if same fact used
+    [28,72].forEach(n => {
+      lessonState.act4.slots[n].forEach((d,i) => {
+        if (d === sel) {
+          lessonState.act4.slots[n][i] = null;
+          const prev = document.getElementById(`ff-slot-${n}-${i}`);
+          prev.textContent = 'Tap a card then tap here';
+          prev.className = 'ff-slot';
+        }
+      });
+    });
+
+    // If slot occupied, free old chip
+    const old = lessonState.act4.slots[num][idx];
+    if (old) {
+      document.querySelectorAll('.ff-chip').forEach(c => {
+        if (c.dataset.fact === old) c.classList.remove('used');
+      });
+    }
+
+    lessonState.act4.slots[num][idx] = sel;
+    const sl = document.getElementById(`ff-slot-${num}-${idx}`);
+    sl.textContent = sel;
+    sl.classList.remove('wrong','correct');
+    sl.classList.add('filled');
+
+    document.querySelectorAll('.ff-chip').forEach(c => {
+      if (c.dataset.fact === sel) { c.classList.add('used'); c.classList.remove('selected'); }
+    });
+    lessonState.act4.selectedChip = null;
+  };
+
+  LS.checkAct4 = function() {
+    let total = 0, corr = 0;
+    [28,72].forEach(num => {
+      const filled = lessonState.act4.slots[num].filter(Boolean).length;
+      if (filled < 4) { toast(`Fill all 4 slots for ${num} first!`,'error'); return; }
+      FF_FAMILIES[num].forEach((fact, i) => {
+        total++;
+        const sl = document.getElementById(`ff-slot-${num}-${i}`);
+        if (lessonState.act4.slots[num].includes(fact)) { sl.classList.add('correct'); corr++; }
+        else sl.classList.add('wrong');
+      });
+    });
+    lessonState.act4.checked = true;
+    const res = document.getElementById('act4-result');
+    res.style.display = 'block';
+    if (corr === total && total === 8) {
+      res.style.background = 'var(--green-l)'; res.style.color = 'var(--green)';
+      res.textContent = '🎉 All 8 facts correct! Both fact families complete!';
+      if (!lessonState.done['act4']) { scoreUp(25); markDone('act4'); toast('Both fact families correct! +25pts','success'); }
+    } else {
+      res.style.background = '#FFF9C4'; res.style.color = '#F57F17';
+      res.textContent = `${corr}/${total} correct. Incorrect slots highlighted in red.`;
+      toast(`${corr}/${total} correct — check red slots`, 'error');
+    }
+  };
+
+  LS.resetAct4 = function() { setupAct4(); };
+
+  /* ══ REVIEW ══ */
+  LS.showHint = function() {
+    document.getElementById('comm-hint').classList.add('visible');
+  };
+
+  LS.submitReview = function() {
+    const txt = document.getElementById('comm-textarea').value.trim();
+    if (txt.length < 10) { toast('Write at least a sentence!','error'); return; }
+    const res = document.getElementById('review-result');
+    res.style.display = 'block';
+    res.innerHTML = `<div style="background:var(--green-l);padding:12px 16px;border-radius:10px;color:var(--green);font-size:13px;font-weight:700;">
+      ✅ Great reflection! Your answer has been recorded.<br>
+      <span style="font-weight:400;margin-top:4px;display:block;">Compare it with the hint above to see how you did.</span>
+    </div>`;
+    if (!lessonState.done['review']) {
+      scoreUp(15);
+      markDone('review');
+      toast('Reflection submitted! +15pts','success');
+    }
+  };
+
+  /* ══ SUMMARY ══ */
+  function renderSummary() {
+    const total = lessonState.score;
+    const maxScore = 95;
+    const pct = Math.min(100, Math.round(total/maxScore*100));
+
+    const ring = document.getElementById('score-ring');
+    ring.style.setProperty('--pct', pct+'%');
+    document.getElementById('score-inner').textContent = total + ' pts';
+
+    const msgs = [
+      [80,'🌟 Outstanding! You\'re a multiplication master!'],
+      [60,'🎉 Great work! You\'ve got most of it down!'],
+      [40,'👍 Good effort! A bit more practice will help!'],
+      [0,'💪 Keep going — every mistake is a learning!']
+    ];
+    const msg = msgs.find(([t]) => total >= t)?.[1] || msgs[3][1];
+    document.getElementById('score-msg').textContent = msg;
+
+    const acts = [
+      { key:'act1', label:'Activity 1: Star Array & Fact Family', pts:20 },
+      { key:'act2', label:'Activity 2: Quick Fact Check', pts:20 },
+      { key:'act3', label:'Activity 3: Multiplication Square', pts:20 },
+      { key:'act4', label:'Activity 4: Fact Families 28 & 72', pts:25 },
+      { key:'review', label:'Activity 5: Commutativity Reflection', pts:15 }
+    ];
+    const list = document.getElementById('ach-list');
+    list.innerHTML = '';
+    acts.forEach(a => {
+      const d = document.createElement('div');
+      d.className = 'ach-row' + (lessonState.done[a.key] ? ' done' : '');
+      d.innerHTML = `<span class="ach-icon">${lessonState.done[a.key]?'✅':'⬜'}</span>
+        <span style="flex:1">${a.label}</span>
+        <span style="font-weight:800">${lessonState.done[a.key]?a.pts:0}/${a.pts} pts</span>`;
+      list.appendChild(d);
+    });
+  }
+
+  /* ══ GLOBAL RESTART ══ */
+  LS.globalRestart = function() {
+    if (!confirm('Restart all activities and reset your score?')) return;
+    lessonState.score = 0;
+    lessonState.done = {};
+    lessonState.act1.checked = false;
+    lessonState.act2.checked = false;
+    lessonState.act3.diagOn = false;
+    lessonState.review.submitted = false;
+    document.getElementById('sb-score').textContent = '0';
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('done'));
+    document.getElementById('comm-textarea').value = '';
+    document.getElementById('comm-hint').classList.remove('visible');
+    document.getElementById('review-result').style.display = 'none';
+    setupAct1();
+    setupAct2();
+    setupAct3();
+    setupAct4();
+    LS.go('intro');
+    toast('All activities reset! Good luck! 🚀','info');
+  };
+
+  /* ══ INIT ══ */
+  document.addEventListener('DOMContentLoaded', () => {
+    setupAct1();
+    setupAct2();
+    setupAct3();
+    setupAct4();
+    LS.go('intro');
+  });
+
+})();
+</script>
+</body>
+</html>
